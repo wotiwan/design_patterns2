@@ -29,10 +29,13 @@ class test_models(unittest.TestCase):
         # Проверки
         assert model.name != ""
 
+    # Проверить создание основной модели
+    # Данные загружаем через json настройки
     def test_load_createmodel_companymodel(self):
         # Подготовка
-       file_name = "/home/valex/Projects/Patterns2025/settings.json"
-       manager = settings_manager(file_name)
+       file_name = "/home/valex/Projects/IGU/Patterns2025/settings.json"
+       manager = settings_manager()
+       manager.file_name = file_name
        
        # Дейсвтие
        result = manager.load()
@@ -41,20 +44,21 @@ class test_models(unittest.TestCase):
        assert result == True
 
 
-
+    # Проверить создание основной модели
+    # Данные загружаем. Проверяем работу Singletone
     def test_loadCombo_createmodel_companymodel(self):
         # Подготовка
-       file_name = "/home/valex/Projects/Patterns2025/settings.json"
-       manager1 = settings_manager(file_name)
-       manager2 = settings_manager(file_name)
+        file_name = "/home/valex/Projects/IGU/Patterns2025/settings.json"
+        manager1 = settings_manager()
+        manager1.file_name = file_name
+        manager2 = settings_manager()
 
 
-       # Дейсвтие
-       manager1.load()
-       # manager2.load()
+        # Дейсвтие
+        manager1.load()
 
-       # Проверки
-       assert manager1.company == manager2.company
+        # Проверки
+        assert manager1.company == manager2.company
   
 if __name__ == '__main__':
     unittest.main()   
