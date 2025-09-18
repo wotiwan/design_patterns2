@@ -1,7 +1,7 @@
-from src.models.company_model import company_model
+from Src.settings_manager import settings_manager
+from Src.Models.company_model import company_model
 import unittest
-import json
-from src.settings_manager import settings_manager
+
 
 class test_models(unittest.TestCase):
 
@@ -37,8 +37,8 @@ class test_models(unittest.TestCase):
        # Дейсвтие
        result = manager.load()
             
-        # Проверки
-        assert result == True
+       # Проверки
+       assert result == True
 
 
 
@@ -53,8 +53,8 @@ class test_models(unittest.TestCase):
        manager1.load()
        # manager2.load()
 
-        # Проверки
-        assert manager1.company == manager2.company
+       # Проверки
+       assert manager1.company == manager2.company
   
 if __name__ == '__main__':
     unittest.main()   
