@@ -3,13 +3,13 @@ from Src.Core.validator import validator
 
 ######################################
 # Модель настроек приложения
-class settings:
+class settings_model:
     __company: company_model = None
 
     # Текущая организация
     @property
     def company(self) -> company_model:
-        return self.company
+        return self.__company
     
     @company.setter
     def company(self, value: company_model):

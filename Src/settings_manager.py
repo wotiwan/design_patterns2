@@ -1,4 +1,4 @@
-from settings import settings
+from Src.Models.settings_model import settings_model
 from Src.Core.validator import argument_exception
 from Src.Core.validator import operation_exception
 from Src.Core.validator import validator
@@ -14,7 +14,7 @@ class settings_manager:
     __full_file_name:str = ""
 
     # Настройки
-    __settings:settings = None
+    __settings:settings_model = None
 
     # Singletone
     def __new__(cls):
@@ -27,7 +27,7 @@ class settings_manager:
 
     # Текущие настройки
     @property
-    def settings(self) -> settings:
+    def settings(self) -> settings_model:
         return self.__settings
 
     # Текущий каталог
@@ -51,7 +51,7 @@ class settings_manager:
             raise operation_exception("Не найден файл настроек!")
 
         try:
-            with open( self.__file_name.__full_file_name(), 'r') as file_instance:
+            with open( self.__full_file_name, 'r') as file_instance:
                 settings = json.load(file_instance)
 
                 if "company" in settings.keys():
@@ -65,6 +65,16 @@ class settings_manager:
     # Обработать полученный словарь    
     def convert(self, data: dict) -> bool:
         validator.validate(data, dict)
+
+        fields = list(filter(lambda x: not x.startswith("_") , dir(self.__settings.company))) 
+        matching_keys = list(filter(lambda key: key in fields, data.keys()))
+
+        try:
+            for key in matching_keys:
+                setattr(self.__settings.company, key, data[key])
+        except:
+            return False        
+
         return True
 
 
@@ -72,7 +82,9 @@ class settings_manager:
     def set_default(self):
         company = company_model()
         company.name = "Рога и копыта"
-        self.__settings = settings()
+        company.inn = 0
+        
+        self.__settings = settings_model()
         self.__settings.company = company
 
 

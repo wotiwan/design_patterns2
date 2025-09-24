@@ -4,11 +4,11 @@ from Src.Core.validator import validator
 # Модель организации
 class company_model:
     __name:str = ""
-    __inn:int
-    __bic:int
-    __corr_account:int
-    __account:int
-    __ownership:str
+    __inn:int = 0
+    __bic:int = 0
+    __corr_account:int = 0
+    __account:int = 0
+    __ownership:str = ""
 
     # ИНН : 12 симв
     # Счет 11 симв

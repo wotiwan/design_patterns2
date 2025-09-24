@@ -33,14 +33,15 @@ class test_models(unittest.TestCase):
     # Данные загружаем через json настройки
     def test_load_createmodel_companymodel(self):
         # Подготовка
-       file_name = "/home/valex/Projects/IGU/Patterns2025/settings.json"
+       file_name = "settings.json"
        manager = settings_manager()
        manager.file_name = file_name
        
-       # Дейсвтие
+       # Действие
        result = manager.load()
             
        # Проверки
+       print(manager.file_name)
        assert result == True
 
 
@@ -48,17 +49,22 @@ class test_models(unittest.TestCase):
     # Данные загружаем. Проверяем работу Singletone
     def test_loadCombo_createmodel_companymodel(self):
         # Подготовка
-        file_name = "/home/valex/Projects/IGU/Patterns2025/settings.json"
+        file_name = "./Tst/settings.json"
         manager1 = settings_manager()
         manager1.file_name = file_name
         manager2 = settings_manager()
+        check_inn = 123456789
+      
 
-
-        # Дейсвтие
+        # Действие
         manager1.load()
 
         # Проверки
-        assert manager1.company == manager2.company
+        assert manager1.settings == manager2.settings
+        print(manager1.file_name)
+        assert(manager1.settings.company.inn == check_inn )
+        print(f"ИНН {manager1.settings.company.inn}")
+
   
 if __name__ == '__main__':
     unittest.main()   
