@@ -1,9 +1,21 @@
+from Src.Core.validator import validator
 
 ###############################################
 # Модель организации
 class company_model:
     __name:str = ""
-    __inn:str = ""
+    __inn:int
+    __bic:int
+    __corr_account:int
+    __account:int
+    __ownership:str
+
+    # ИНН : 12 симв
+    # Счет 11 симв
+    # Корреспондентский счет 11 симв
+    # БИК 9 симв
+    # Наименование
+    # Вид собственности 5 симв
 
     # Наименование
     @property
@@ -12,7 +24,59 @@ class company_model:
 
     @name.setter
     def name(self, value:str):
-        if value.strip() != "":
-            self.__name = value.strip()
+        validator.validate(value, str)
+        self.__name = value.strip()
+
+    # ИНН
+    @property
+    def inn(self) -> int:
+        return self.__inn
+    
+    @inn.setter
+    def inn(self, value:int):
+        validator.validate(value, int, 12)
+        self.__inn = value
+
+    # КПП
+    @property
+    def bic(self) -> int:
+        return self.__bic
+
+    @bic.setter
+    def bic(self, value:int):
+        validator.validate(value, int, 9)
+        self.__bic = value
+
+    # Корреспондентский счет
+    @property
+    def corr_account(self) -> int:
+        return self.__corr_account
+        
+    @corr_account.setter
+    def corr_account(self, value:int):
+        validator.validate(value, int, 11)
+        self.__corr_account = value
+
+    @property
+    def account(self) -> int:
+        return self.__account
+    
+    @account.setter
+    def account(self, value:int):
+        validator.validate(value, int, 11)
+        self.__account = value
+
+    @property
+    def ownership(self) -> str:
+        return self.__ownership
+    
+    @ownership.setter
+    def ownership(self, value:str):
+        validator.validate(value, str, 5)
+        self.__ownership = value.strip()
+
+ 
+
+       
 
 

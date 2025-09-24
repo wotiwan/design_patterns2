@@ -1,3 +1,7 @@
+from settings import settings
+from Src.Core.validator import argument_exception
+from Src.Core.validator import operation_exception
+from Src.Core.validator import validator
 from Src.Models.company_model import company_model
 import os
 import json
@@ -6,8 +10,11 @@ import json
 # Менеджер настроек. 
 # Предназначен для управления настройками и хранения параметров приложения
 class settings_manager:
-    __file_name:str = ""
-    __company:company_model = None
+    # Наименование файла (полный путь)
+    __full_file_name:str = ""
+
+    # Настройки
+    __settings:settings = None
 
     # Singletone
     def __new__(cls):
@@ -18,48 +25,55 @@ class settings_manager:
     def __init__(self):
         self.set_default()
 
-    # Параметры организации из настроек
+    # Текущие настройки
     @property
-    def company(self) -> company_model:
-        return self.__company
+    def settings(self) -> settings:
+        return self.__settings
 
+    # Текущий каталог
     @property
     def file_name(self) -> str:
-        return self.__file_name
+        return self.__full_file_name
 
     # Полный путь к файлу настроек
     @file_name.setter
     def file_name(self, value:str):
-        if value.strip() == "":
-            return
-        
-        if os.path.exists(value):
-            self.__file_name = value.strip()
+        validator.validate(value, str)
+        full_file_name = os.path.abspath(value)        
+        if os.path.exists(full_file_name):
+            self.__full_file_name = full_file_name.strip()
         else:
-            raise Exception("Не найден файл настроек!")
+            raise argument_exception(f'Не найден файл настроек {full_file_name}')
 
     # Загрузить настройки из Json файла
     def load(self) -> bool:
-        if self.__file_name.strip() == "":
-            raise Exception("Не найден файл настроек!")
+        if self.__full_file_name == "":
+            raise operation_exception("Не найден файл настроек!")
 
         try:
-            with open( self.__file_name.strip(), 'r') as file_instance:
-                data = json.load(file_instance)
+            with open( self.__file_name.__full_file_name(), 'r') as file_instance:
+                settings = json.load(file_instance)
 
-                if "company" in data.keys():
-                    item = data["company"]
-                
-                    self.__company.name = item["name"]
-                    return True
+                if "company" in settings.keys():
+                    data = settings["company"]
+                    return self.convert(data)
 
             return False
         except:
             return False
+        
+    # Обработать полученный словарь    
+    def convert(self, data: dict) -> bool:
+        validator.validate(data, dict)
+        return True
+
 
     # Параметры настроек по умолчанию
     def set_default(self):
-        self.__company = company_model()
-        self.__company.name = "Рога и копыта"
+        company = company_model()
+        company.name = "Рога и копыта"
+        self.__settings = settings()
+        self.__settings.company = company
+
 
 
