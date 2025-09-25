@@ -1,7 +1,8 @@
 from Src.settings_manager import settings_manager
 from Src.Models.company_model import company_model
 import unittest
-
+from Src.Models.storage_model import storage_model
+import uuid
 
 class test_models(unittest.TestCase):
 
@@ -65,6 +66,21 @@ class test_models(unittest.TestCase):
         assert(manager1.settings.company.inn == check_inn )
         print(f"ИНН {manager1.settings.company.inn}")
 
+    # Проверка на сравнение двух по значению одинаковых моделей
+    def text_equals_storage_model_create(self):
+        # Подготовка
+        id = uuid.uuid4().hex
+        storage1 = storage_model()
+        storage1.id = id
+        storage2 = storage_model()   
+        storage2.id = id
+        # Действие GUID
+
+        # Проверки
+        assert storage1 == storage2
+
+
+    
   
 if __name__ == '__main__':
     unittest.main()   

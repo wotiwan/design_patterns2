@@ -1,8 +1,9 @@
 from Src.Core.validator import validator
+from Src.Core.abstract_model import abstact_model
 
 ###############################################
 # Модель организации
-class company_model:
+class company_model(abstact_model):
     __name:str = ""
     __inn:int = 0
     __bic:int = 0

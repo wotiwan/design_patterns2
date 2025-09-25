@@ -82,7 +82,7 @@ class settings_manager:
     def set_default(self):
         company = company_model()
         company.name = "Рога и копыта"
-        company.inn = 0
+        company.inn = -1
         
         self.__settings = settings_model()
         self.__settings.company = company
