@@ -3,6 +3,7 @@ from Src.Models.company_model import company_model
 import unittest
 from Src.Models.storage_model import storage_model
 import uuid
+from Src.Models.nomenclature_model import nomenclature_model
 
 class test_models(unittest.TestCase):
 
@@ -67,18 +68,32 @@ class test_models(unittest.TestCase):
         print(f"ИНН {manager1.settings.company.inn}")
 
     # Проверка на сравнение двух по значению одинаковых моделей
-    def text_equals_storage_model_create(self):
+    def test_equals_storage_model_create(self):
         # Подготовка
         id = uuid.uuid4().hex
         storage1 = storage_model()
-        storage1.id = id
+        storage1.unique_code = id
         storage2 = storage_model()   
-        storage2.id = id
-        # Действие GUID
+        storage2.unique_code = id
+
+        # Действие 
 
         # Проверки
         assert storage1 == storage2
 
+    # Проверить создание номенклатуры и присвоение уникального кода
+    def test_equals_nomenclature_model_create(self):
+        # Подготовка
+        id = uuid.uuid4().hex
+        item1 = nomenclature_model()
+        item1.unique_code = id
+        item2 = nomenclature_model()
+        item2.unique_code = id
+
+        # Действие
+
+        # Проверки
+        assert item1 == item2
 
     
   

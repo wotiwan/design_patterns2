@@ -33,5 +33,5 @@ class abstact_model(ABC):
         if value is  None: return False
         if not isinstance(value, abstact_model): return False
 
-        return self.__unique_code == value.unique_code
+        return self.unique_code == value.unique_code
 
