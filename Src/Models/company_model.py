@@ -1,9 +1,9 @@
 from Src.Core.validator import validator
-from Src.Core.abstract_model import abstact_model
+from Src.Core.entity_model import entity_model
 
 ###############################################
 # Модель организации
-class company_model(abstact_model):
+class company_model(entity_model):
     __name:str = ""
     __inn:int = 0
     __bic:int = 0
@@ -17,16 +17,6 @@ class company_model(abstact_model):
     # БИК 9 симв
     # Наименование
     # Вид собственности 5 симв
-
-    # Наименование
-    @property
-    def name(self) -> str:
-        return self.__name
-
-    @name.setter
-    def name(self, value:str):
-        validator.validate(value, str)
-        self.__name = value.strip()
 
     # ИНН
     @property

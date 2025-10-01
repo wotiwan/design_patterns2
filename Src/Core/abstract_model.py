@@ -2,6 +2,10 @@ from abc import ABC
 import uuid
 from Src.Core.validator import validator
 
+"""
+Абстрактный класс для наследования моделей
+Содержит в себе только генерацию уникального кода
+"""
 class abstact_model(ABC):
     __unique_code:str
 
@@ -25,5 +29,9 @@ class abstact_model(ABC):
     """
     Перегрузка штатного варианта сравнения
     """
-    def __eq__(self, value: str) -> bool:
-        return self.__unique_code == value
+    def __eq__(self, value) -> bool:
+        if value is  None: return False
+        if not isinstance(value, abstact_model): return False
+
+        return self.__unique_code == value.unique_code
+
