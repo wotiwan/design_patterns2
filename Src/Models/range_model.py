@@ -34,6 +34,32 @@ class range_model(entity_model):
     def base(self, value):
         self.__base = value
 
+    """
+    Киллограмм
+    """
+    @staticmethod
+    def create_kill():
+        inner_gramm = range_model.create_gramm()
+        return range_model.create(  "киллограмм", inner_gramm)
 
-
-
+    """
+    Грамм
+    """
+    @staticmethod
+    def create_gramm():
+        return range_model.create("грамм")
+     
+    """
+    Универсальный метод - фабричный
+    """
+    @staticmethod
+    def create(name:str, base _):
+        validator.validate(name, str)
+        inner_base = None
+        if not base is None: 
+            validator.validate(base, range_model)
+            inner_base = base
+        item = range_model()
+        item.name = name
+        item.base = inner_base
+        return item
