@@ -4,7 +4,6 @@ from Src.Core.entity_model import entity_model
 ###############################################
 # Модель организации
 class company_model(entity_model):
-    __name:str = ""
     __inn:int = 0
     __bic:int = 0
     __corr_account:int = 0

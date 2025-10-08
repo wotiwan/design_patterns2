@@ -30,7 +30,7 @@ class settings_manager:
     def settings(self) -> settings_model:
         return self.__settings
 
-    # Текущий каталог
+    # Текущий файл
     @property
     def file_name(self) -> str:
         return self.__full_file_name

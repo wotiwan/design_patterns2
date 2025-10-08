@@ -53,8 +53,10 @@ class range_model(entity_model):
     Универсальный метод - фабричный
     """
     @staticmethod
-    def create(name:str, base):
+    def create(name:str, value:int, base ):
         validator.validate(name, str)
+        validator.validate(value, int)
+
         inner_base = None
         if not base is None: 
             validator.validate(base, range_model)
@@ -62,4 +64,5 @@ class range_model(entity_model):
         item = range_model()
         item.name = name
         item.base = inner_base
+        item.value = value
         return item

@@ -36,4 +36,16 @@ class nomenclature_model(entity_model):
         validator.validate(value, range_model)
         self.__range = value
 
+
+    """
+    Универсальный фабричный метод
+    """
+    def create(name:str, group:group_model, range:range_model):
+        validator.validate(name, str)
+        item = nomenclature_model()
+        item.name = name
+        item.group = group
+        item.range = range
+        return item
+        
     

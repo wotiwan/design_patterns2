@@ -1,11 +1,28 @@
 from Src.reposity import reposity
-from Src.Models import range_model
+from Src.Models.range_model import range_model
+from Src.Models.group_model import group_model
+from Src.Models.nomenclature_model import nomenclature_model
+from Src.Core.validator import validator, argument_exception, operation_exception
+import os
+import json
+from Src.Models.receipt_model import receipt_model
 
 class start_service:
+    # Репозиторий
     __repo: reposity = reposity()
 
+    # Рецепт по умолчанию
+    __default_receipt: receipt_model
+
+    # Словарь который содержит загруженные и инициализованные инстансы нужных объектов
+    # Ключ - id записи, значение - abstract_model
+    __default_receipt_items = {}
+
+    # Наименование файла (полный путь)
+    __full_file_name:str = ""
+
     def __init__(self):
-        self.__repo[ reposity.range_key ] = []
+        self.__repo.initalize()
 
     # Singletone
     def __new__(cls):
@@ -13,10 +30,104 @@ class start_service:
             cls.instance = super(start_service, cls).__new__(cls)
         return cls.instance 
 
-    def __default_create_ranges(self):
-        self.__repo.data[ reposity.range_key ].append(  range_model.create_gramm() )
-        self.__repo.data[ reposity.range_key ].append(  range_model.create_killogramm() )
+    # Текущий файл
+    @property
+    def file_name(self) -> str:
+        return self.__full_file_name
+
+    # Полный путь к файлу настроек
+    @file_name.setter
+    def file_name(self, value:str):
+        validator.validate(value, str)
+        full_file_name = os.path.abspath(value)        
+        if os.path.exists(full_file_name):
+            self.__full_file_name = full_file_name.strip()
+        else:
+            raise argument_exception(f'Не найден файл настроек {full_file_name}')
+
+    # Загрузить настройки из Json файла
+    def load(self) -> bool:
+        if self.__full_file_name == "":
+            raise operation_exception("Не найден файл настроек!")
+
+        try:
+            with open( self.__full_file_name, 'r') as file_instance:
+                settings = json.load(file_instance)
+
+                if "default_receipt" in settings.keys():
+                    data = settings["default_receipt"]
+                    return self.convert(data)
+
+            return False
+        except:
+            return False
         
+    # Обработать полученный словарь    
+    def convert(self, data: dict) -> bool:
+        validator.validate(data, dict)
+
+        # 1 Созданим рецепт
+        cooking_time = data['cooking_time'] if 'cooking_time' in data else ""
+        portions = int(data['portions']) if 'portions' in data else 0
+        name =  data['name'] if 'name' in data else "НЕ ИЗВЕСТНО"
+        self.__default_receipt = receipt_model.create(name, cooking_time, portions  )
+
+        # Загрузим шаги приготовления
+        steps =  data['steps'] if 'steps' in data else []
+        for step in steps:
+            if step.strip() != "":
+                self.__default_receipt.steps.append( step )
+
+        # Сформируем список единиц измерения
+        ranges =     data['ranges'] if 'ranges' in data else []     
+        for range in ranges:
+            name = range['name'] if 'name' in range else ""
+            base_id =  range['base_id'] if 'base_id' in range else ""
+            value =  range['value'] if 'value' in range else 1
+            id = range['id'] if 'id' in range else ""
+
+            if id.strip() != "":
+                base  = self.__default_receipt_items[base_id] if base_id in self.__default_receipt_items else None
+                item = range_model.create(name, value, base)
+                item.unique_code = id
+                self.__default_receipt_items.setdefault(id, item)
+                self.__repo.data[ reposity.range_key() ].append(item)
+                
+        # Сформировать список категортй
+        categories =  data['categories'] if 'categories' in data else []    
+        for category in  categories:
+            name = category['name'] if 'name' in range else ""
+            id = category['id'] if 'id' in range else ""
+
+            if id.strip() != "":
+                item = group_model.create(name)
+                item.unique_code = id
+                self.__default_receipt_items.setdefault(id, item)
+                self.__repo.data[ reposity.group_key() ].append(item)
+
+        # Сформировать номенклатуру
+        nomenclatures = data['nomenclatures'] if 'nomenclatures' in data else []   
+        for nomenclature in   nomenclatures:
+            name = nomenclature['name'] if 'name' in nomenclature else ""
+            id = nomenclature['id'] if 'id' in nomenclature else ""
+            range_id = nomenclature['range_id'] if 'range_id' in nomenclature else ""
+            category_id = nomenclature['category_id'] if 'category_id' in nomenclature else ""
+
+            if id.strip() != "":
+                range =  self.__default_receipt_items[range_id] if range_id in self.__default_receipt_items else None
+                category =  self.__default_receipt_items[category_id] if category_id in self.__default_receipt_items else None
+                item  = nomenclature_model.create(name, category, range)
+                item.unique_code = id
+                self.__default_receipt_items.setdefault(id, item)
+                self.__repo.data[ reposity.nomenclature_key() ].append(item)
+
+        # Собираем рецепт
+                
+
+
+
+        return True
+
     """
     Стартовый набор данных
     """
@@ -27,5 +138,10 @@ class start_service:
     Основной метод для генерации эталонных данных
     """
     def start(self):
-        self.__default_create_ranges()
+        self.file_name = "settings.json"
+        result = self.load()
+        if result == False:
+            raise operation_exception("Невозможно сформировать стартовый набор данных!")
+        
+
 
