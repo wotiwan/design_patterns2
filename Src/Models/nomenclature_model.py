@@ -21,7 +21,7 @@ class nomenclature_model(entity_model):
 
     @group.setter
     def group(self, value: group_model):
-        validator.validate(value,group_model )
+        validator.validate(value,entity_model )
         self.__group = value    
 
     """

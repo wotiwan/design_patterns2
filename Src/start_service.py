@@ -6,6 +6,7 @@ from Src.Core.validator import validator, argument_exception, operation_exceptio
 import os
 import json
 from Src.Models.receipt_model import receipt_model
+from Src.Models.receipt_item_model import receipt_item_model
 
 class start_service:
     # Репозиторий
@@ -62,6 +63,66 @@ class start_service:
         except:
             return False
         
+    # TODO: Внимание! Все методы __convert можно сделать универсально
+        
+    # Загрузить единицы измерений    
+    def __convert_ranges(self, data: dict) -> bool:
+        validator.validate(data, dict)
+        ranges =     data['ranges'] if 'ranges' in data else []     
+        for range in ranges:
+            name = range['name'] if 'name' in range else ""
+            base_id =  range['base_id'] if 'base_id' in range else ""
+            value =  range['value'] if 'value' in range else 1
+            id = range['id'] if 'id' in range else ""
+
+            if id.strip() != "":
+                base  = self.__default_receipt_items[base_id] if base_id in self.__default_receipt_items else None
+                item = range_model.create(name, value, base)
+                item.unique_code = id
+                self.__default_receipt_items.setdefault(id, item)
+                self.__repo.data[ reposity.range_key() ].append(item)
+
+        return True
+
+    # Загрузить группы номенклатуры
+    def __convert_groups(self, data: dict) -> bool:
+        validator.validate(data, dict)
+        categories =  data['categories'] if 'categories' in data else []    
+        for category in  categories:
+            name = category['name'] if 'name' in category else ""
+            id = category['id'] if 'id' in category else ""
+
+            if id.strip() != "":
+                item = group_model.create(name)
+                item.unique_code = id
+                self.__default_receipt_items.setdefault(id, item)
+                self.__repo.data[ reposity.group_key() ].append(item)
+
+        return True
+
+    # Загрузить номенклатуру
+    def __convert_nomenclatures(   self, data: dict) -> bool:
+        validator.validate(data, dict)      
+        nomenclatures = data['nomenclatures'] if 'nomenclatures' in data else []   
+        for nomenclature in   nomenclatures:
+            name = nomenclature['name'] if 'name' in nomenclature else ""
+            id = nomenclature['id'] if 'id' in nomenclature else ""
+            range_id = nomenclature['range_id'] if 'range_id' in nomenclature else ""
+            category_id = nomenclature['category_id'] if 'category_id' in nomenclature else ""
+
+            if id.strip() != "":
+                range =  self.__default_receipt_items[range_id] if range_id in self.__default_receipt_items else None
+                category =  self.__default_receipt_items[category_id] if category_id in self.__default_receipt_items else None
+                item  = nomenclature_model.create(name, category, range)
+                item.unique_code = id
+                self.__default_receipt_items.setdefault(id, item)
+                self.__repo.data[ reposity.nomenclature_key() ].append(item)
+
+        return True        
+
+
+    # TODO: Внимание! Тут нужно проверки добавить и обработку исключений чтобы возвращать False
+
     # Обработать полученный словарь    
     def convert(self, data: dict) -> bool:
         validator.validate(data, dict)
@@ -78,59 +139,30 @@ class start_service:
             if step.strip() != "":
                 self.__default_receipt.steps.append( step )
 
-        # Сформируем список единиц измерения
-        ranges =     data['ranges'] if 'ranges' in data else []     
-        for range in ranges:
-            name = range['name'] if 'name' in range else ""
-            base_id =  range['base_id'] if 'base_id' in range else ""
-            value =  range['value'] if 'value' in range else 1
-            id = range['id'] if 'id' in range else ""
+        self.__convert_ranges(data)
+        self.__convert_groups(data)
+        self.__convert_nomenclatures(data)        
 
-            if id.strip() != "":
-                base  = self.__default_receipt_items[base_id] if base_id in self.__default_receipt_items else None
-                item = range_model.create(name, value, base)
-                item.unique_code = id
-                self.__default_receipt_items.setdefault(id, item)
-                self.__repo.data[ reposity.range_key() ].append(item)
-                
-        # Сформировать список категортй
-        categories =  data['categories'] if 'categories' in data else []    
-        for category in  categories:
-            name = category['name'] if 'name' in range else ""
-            id = category['id'] if 'id' in range else ""
-
-            if id.strip() != "":
-                item = group_model.create(name)
-                item.unique_code = id
-                self.__default_receipt_items.setdefault(id, item)
-                self.__repo.data[ reposity.group_key() ].append(item)
-
-        # Сформировать номенклатуру
-        nomenclatures = data['nomenclatures'] if 'nomenclatures' in data else []   
-        for nomenclature in   nomenclatures:
-            name = nomenclature['name'] if 'name' in nomenclature else ""
-            id = nomenclature['id'] if 'id' in nomenclature else ""
-            range_id = nomenclature['range_id'] if 'range_id' in nomenclature else ""
-            category_id = nomenclature['category_id'] if 'category_id' in nomenclature else ""
-
-            if id.strip() != "":
-                range =  self.__default_receipt_items[range_id] if range_id in self.__default_receipt_items else None
-                category =  self.__default_receipt_items[category_id] if category_id in self.__default_receipt_items else None
-                item  = nomenclature_model.create(name, category, range)
-                item.unique_code = id
-                self.__default_receipt_items.setdefault(id, item)
-                self.__repo.data[ reposity.nomenclature_key() ].append(item)
 
         # Собираем рецепт
-                
-
-
-
+        compositions =  data['composition'] if 'composition' in data else []      
+        for composition in compositions:
+            namnomenclature_id = composition['nomenclature_id'] if 'nomenclature_id' in composition else ""
+            range_id = composition['range_id'] if 'range_id' in composition else ""
+            value  = composition['value'] if 'value' in composition else ""
+            nomenclature = self.__default_receipt_items[namnomenclature_id] if namnomenclature_id in self.__default_receipt_items else None
+            range = self.__default_receipt_items[range_id] if range_id in self.__default_receipt_items else None
+            item = receipt_item_model.create(  nomenclature, range, value)
+            self.__default_receipt.composition.append(item)
+            
+        # Сохраняем рецепт
+        self.__repo.data[ reposity.receipt_key() ].append(self.__default_receipt)
         return True
 
     """
     Стартовый набор данных
     """
+    @property
     def data(self):
         return self.__repo.data   
 

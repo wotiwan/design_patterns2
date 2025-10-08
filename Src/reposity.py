@@ -40,6 +40,9 @@ class reposity:
     def receipt_key():
         return "receipt_model"
     
+
+    # TODO: Внимание! Тут можно сделать универсально
+
     """
     Инициализация
     """
