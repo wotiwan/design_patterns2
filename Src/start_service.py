@@ -7,6 +7,9 @@ import os
 import json
 from Src.Models.receipt_model import receipt_model
 from Src.Models.receipt_item_model import receipt_item_model
+from Src.Dtos.nomenclature_dto import nomenclature_dto
+from Src.Dtos.range_dto import range_dto
+from Src.Dtos.category_dto import category_dto
 
 class start_service:
     # Репозиторий
@@ -60,27 +63,29 @@ class start_service:
                     return self.convert(data)
 
             return False
-        except:
+        except Exception as e:
+            error_message = str(e)
             return False
         
-    # TODO: Внимание! Все методы __convert можно сделать универсально
-        
-    # Загрузить единицы измерений    
+    # Сохранить элемент в репозитории
+    def __save_item(self, key:str, dto, item):
+        validator.validate(key, str)
+        item.unique_code = dto.id
+        self.__default_receipt_items.setdefault(dto.id, item)
+        self.__repo.data[ key ].append(item)
+
+    # Загрузить единицы измерений   
     def __convert_ranges(self, data: dict) -> bool:
         validator.validate(data, dict)
-        ranges =     data['ranges'] if 'ranges' in data else []     
+        ranges = data['ranges'] if 'ranges' in data else []    
+        if len(ranges) == 0:
+            return False
+         
         for range in ranges:
-            name = range['name'] if 'name' in range else ""
-            base_id =  range['base_id'] if 'base_id' in range else ""
-            value =  range['value'] if 'value' in range else 1
-            id = range['id'] if 'id' in range else ""
-
-            if id.strip() != "":
-                base  = self.__default_receipt_items[base_id] if base_id in self.__default_receipt_items else None
-                item = range_model.create(name, value, base)
-                item.unique_code = id
-                self.__default_receipt_items.setdefault(id, item)
-                self.__repo.data[ reposity.range_key() ].append(item)
+            dto = range_dto().create(range)
+            base  = self.__default_receipt_items[ dto.base_id ] if dto.base_id in self.__default_receipt_items else None
+            item = range_model.create(dto.name, dto.value, base)
+            self.__save_item( reposity.range_key(), dto, item )
 
         return True
 
@@ -88,15 +93,13 @@ class start_service:
     def __convert_groups(self, data: dict) -> bool:
         validator.validate(data, dict)
         categories =  data['categories'] if 'categories' in data else []    
-        for category in  categories:
-            name = category['name'] if 'name' in category else ""
-            id = category['id'] if 'id' in category else ""
+        if len(categories) == 0:
+            return False
 
-            if id.strip() != "":
-                item = group_model.create(name)
-                item.unique_code = id
-                self.__default_receipt_items.setdefault(id, item)
-                self.__repo.data[ reposity.group_key() ].append(item)
+        for category in  categories:
+            dto = category_dto().create(category)    
+            item = group_model.create(dto.name)
+            self.__save_item( reposity.group_key(), dto, item )
 
         return True
 
@@ -104,24 +107,18 @@ class start_service:
     def __convert_nomenclatures(   self, data: dict) -> bool:
         validator.validate(data, dict)      
         nomenclatures = data['nomenclatures'] if 'nomenclatures' in data else []   
-        for nomenclature in   nomenclatures:
-            name = nomenclature['name'] if 'name' in nomenclature else ""
-            id = nomenclature['id'] if 'id' in nomenclature else ""
-            range_id = nomenclature['range_id'] if 'range_id' in nomenclature else ""
-            category_id = nomenclature['category_id'] if 'category_id' in nomenclature else ""
-
-            if id.strip() != "":
-                range =  self.__default_receipt_items[range_id] if range_id in self.__default_receipt_items else None
-                category =  self.__default_receipt_items[category_id] if category_id in self.__default_receipt_items else None
-                item  = nomenclature_model.create(name, category, range)
-                item.unique_code = id
-                self.__default_receipt_items.setdefault(id, item)
-                self.__repo.data[ reposity.nomenclature_key() ].append(item)
+        if len(nomenclatures) == 0:
+            return False
+         
+        for nomenclature in nomenclatures:
+            dto = nomenclature_dto().create(nomenclature)
+            range =  self.__default_receipt_items[ dto.range_id ] if dto.range_id in self.__default_receipt_items else None
+            category =  self.__default_receipt_items[ dto.category_id] if dto.category_id in self.__default_receipt_items else None
+            item  = nomenclature_model.create(dto.name, category, range)
+            self.__save_item( reposity.nomenclature_key(), dto, item )
 
         return True        
 
-
-    # TODO: Внимание! Тут нужно проверки добавить и обработку исключений чтобы возвращать False
 
     # Обработать полученный словарь    
     def convert(self, data: dict) -> bool:

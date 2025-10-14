@@ -66,3 +66,4 @@ class range_model(entity_model):
         item.base = inner_base
         item.value = value
         return item
+    

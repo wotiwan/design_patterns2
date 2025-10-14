@@ -1,5 +1,6 @@
 import unittest
 from Src.Dtos.nomenclature_dto import nomenclature_dto
+from Src.Dtos.range_dto import range_dto
 
 # Набор тестов для работы с Dto
 class test_dtos(unittest.TestCase):
@@ -16,5 +17,22 @@ class test_dtos(unittest.TestCase):
         # Проверка
         assert result is not None
         assert len(dto.name) > 0
+
+
+    # Проверить фабричный метод и загрузку данных в dto
+    def test_notThrow_range_dto_create(self):
+        # Подготовка
+        data = { "name":"Грамм", 
+                "id":"adb7510f-687d-428f-a697-26e53d3f65b7",
+                "base_id":None,
+                "value":1 }
+        dto = range_dto()
+
+        # Действие
+        result = dto.create(data)
+
+        # Проверка
+        assert result is not None
+        assert len(dto.name) > 0    
 
 
