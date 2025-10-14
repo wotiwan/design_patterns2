@@ -3,6 +3,7 @@ from Src.Core.validator import argument_exception
 from Src.Core.validator import operation_exception
 from Src.Core.validator import validator
 from Src.Models.company_model import company_model
+from Src.Core.common import common
 import os
 import json
 
@@ -66,7 +67,7 @@ class settings_manager:
     def convert(self, data: dict) -> bool:
         validator.validate(data, dict)
 
-        fields = list(filter(lambda x: not x.startswith("_") , dir(self.__settings.company))) 
+        fields = common.get_fields(self.__settings.company)
         matching_keys = list(filter(lambda key: key in fields, data.keys()))
 
         try:

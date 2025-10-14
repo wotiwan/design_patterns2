@@ -30,4 +30,25 @@ class test_start(unittest.TestCase):
         kg =  list(filter(lambda x: x.name == "Киллограмм", start.data[ reposity.range_key()])) 
         assert gramm[0].unique_code == kg[0].base.unique_code
 
+
+    # Проверить метод keys класса reposity
+    def test_any_reposity_keys(self):
+        # Подготовка
+
+        # Действие
+        result = reposity.keys()
+        
+        # Проверка
+        assert len(result) > 0
+
+    # Проверить метод initalize класса reposity 
+    def test_notThrow_reposity_initialize(self):   
+        # Подготовка
+        repo = reposity()
+
+        # Действие
+        repo.initalize() 
+
+
+
         

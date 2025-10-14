@@ -1,3 +1,4 @@
+from Src.Core.common import common
 
 """
 Репозиторий данных
@@ -40,16 +41,28 @@ class reposity:
     def receipt_key():
         return "receipt_model"
     
+    """
+    Получить список всех ключей
+    Источник: https://github.com/Alyona1619
+    """
+    @staticmethod
+    def keys() -> list:
+        result = []
+        methods = [method for method in dir(reposity) if
+                    callable(getattr(reposity, method)) and method.endswith('_key')]
+        for method in methods:
+            key = getattr(reposity, method)()
+            result.append(key)
 
-    # TODO: Внимание! Тут можно сделать универсально
+        return result
 
+    
     """
     Инициализация
     """
     def initalize(self):
-        self.__data[ reposity.range_key() ] = []
-        self.__data[ reposity.group_key() ] = []
-        self.__data[ reposity.nomenclature_key() ] = []
-        self.__data[ reposity.receipt_key() ] = []
+        keys = reposity.keys()
+        for key in keys:
+            self.__data[ key ] = []
     
     
