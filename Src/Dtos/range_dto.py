@@ -7,28 +7,8 @@ from Src.Core.abstract_dto import abstact_dto
 #                "base_id":null,
 #                "value":1
 class range_dto(abstact_dto):
-    __id:str = ""
     __base_id:str = None
-    __name:str = ""
     __value:int = 1
-
-    
-    @property
-    def name(self) ->str:
-        return self.__name
-    
-    @name.setter
-    def name(self, value):
-        self.__name = value
-
-
-    @property
-    def id(self) -> str:
-        return self.__id
-
-    @id.setter
-    def id(self, value):
-        self.__id = value    
 
     @property
     def base_id(self) -> str:

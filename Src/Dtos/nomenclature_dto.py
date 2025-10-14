@@ -8,19 +8,9 @@ from Src.Core.abstract_dto import abstact_dto
 #                "id":"0c101a7e-5934-4155-83a6-d2c388fcc11a"
 
 class nomenclature_dto(abstact_dto):
-    __name:str = ""
     __range_id:str = ""
-    __id:str = ""
     __category_id:str = ""
 
-
-    @property
-    def name(self) ->str:
-        return self.__name
-    
-    @name.setter
-    def name(self, value):
-        self.__name = value
 
     @property
     def range_id(self) -> str:
@@ -29,14 +19,6 @@ class nomenclature_dto(abstact_dto):
     @range_id.setter
     def range_id(self, value):
         self.__range_id = value
-
-    @property
-    def id(self) -> str:
-        return self.__id
-
-    @id.setter
-    def id(self, value):
-        self.__id = value
 
     @property
     def category_id(self) -> str:
