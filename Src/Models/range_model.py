@@ -1,5 +1,6 @@
 from Src.Core.entity_model import entity_model
 from Src.Core.validator import validator, argument_exception
+from Src.Dtos.range_dto import range_dto
 
 """
 Модель единицы измерения
@@ -65,5 +66,15 @@ class range_model(entity_model):
         item.name = name
         item.base = inner_base
         item.value = value
+        return item
+    
+    """
+    Фабричный метод из Dto
+    """
+    def from_dto(dto:range_dto, cache:dict):
+        validator.validate(dto, range_dto)
+        validator.validate(cache, dict)
+        base  = cache[ dto.base_id ] if dto.base_id in cache else None
+        item = range_model.create(dto.name, dto.value, base)
         return item
     

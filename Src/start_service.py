@@ -20,7 +20,7 @@ class start_service:
 
     # Словарь который содержит загруженные и инициализованные инстансы нужных объектов
     # Ключ - id записи, значение - abstract_model
-    __default_receipt_items = {}
+    __cache = {}
 
     # Наименование файла (полный путь)
     __full_file_name:str = ""
@@ -71,7 +71,7 @@ class start_service:
     def __save_item(self, key:str, dto, item):
         validator.validate(key, str)
         item.unique_code = dto.id
-        self.__default_receipt_items.setdefault(dto.id, item)
+        self.__cache.setdefault(dto.id, item)
         self.__repo.data[ key ].append(item)
 
     # Загрузить единицы измерений   
@@ -83,8 +83,7 @@ class start_service:
          
         for range in ranges:
             dto = range_dto().create(range)
-            base  = self.__default_receipt_items[ dto.base_id ] if dto.base_id in self.__default_receipt_items else None
-            item = range_model.create(dto.name, dto.value, base)
+            item = range_model.from_dto(dto, self.__cache)
             self.__save_item( reposity.range_key(), dto, item )
 
         return True
@@ -98,7 +97,7 @@ class start_service:
 
         for category in  categories:
             dto = category_dto().create(category)    
-            item = group_model.create(dto.name)
+            item = group_model.from_dto(dto, self.__cache )
             self.__save_item( reposity.group_key(), dto, item )
 
         return True
@@ -112,9 +111,7 @@ class start_service:
          
         for nomenclature in nomenclatures:
             dto = nomenclature_dto().create(nomenclature)
-            range =  self.__default_receipt_items[ dto.range_id ] if dto.range_id in self.__default_receipt_items else None
-            category =  self.__default_receipt_items[ dto.category_id] if dto.category_id in self.__default_receipt_items else None
-            item  = nomenclature_model.create(dto.name, category, range)
+            item = nomenclature_model.from_dto(dto, self.__cache)
             self.__save_item( reposity.nomenclature_key(), dto, item )
 
         return True        
@@ -144,11 +141,12 @@ class start_service:
         # Собираем рецепт
         compositions =  data['composition'] if 'composition' in data else []      
         for composition in compositions:
+            # TODO: Заменить код через Dto
             namnomenclature_id = composition['nomenclature_id'] if 'nomenclature_id' in composition else ""
             range_id = composition['range_id'] if 'range_id' in composition else ""
             value  = composition['value'] if 'value' in composition else ""
-            nomenclature = self.__default_receipt_items[namnomenclature_id] if namnomenclature_id in self.__default_receipt_items else None
-            range = self.__default_receipt_items[range_id] if range_id in self.__default_receipt_items else None
+            nomenclature = self.__cache[namnomenclature_id] if namnomenclature_id in self.__cache else None
+            range = self.__cache[range_id] if range_id in self.__cache else None
             item = receipt_item_model.create(  nomenclature, range, value)
             self.__default_receipt.composition.append(item)
             

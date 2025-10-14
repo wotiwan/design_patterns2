@@ -1,5 +1,4 @@
 from Src.Core.abstract_model import abstact_model
-from abc import ABC
 from Src.Core.validator import validator
 
 
@@ -26,3 +25,5 @@ class entity_model(abstact_model):
         item = entity_model()
         item.name = name
         return item
+    
+  
