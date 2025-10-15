@@ -90,15 +90,26 @@
 в складской, оперативном или финансовом учете.
 
 
-#### Внешние библиотеки
-1. **dict2xml**:
-```
-pip3 install dict2xml
-```
- 
+#### Ресурсы
+https://www.geeksforgeeks.org/installation-guide/how-to-install-flask-on-linux/
 
-  
 
-  
+#### Создаем виртуальную среду
+```sh
+ apt install python3.10-venv
+ python3 -m venv env_name
+```
+
+Далее, активируем запустив команду в консоле VisualStudio
+   `source ./env_name/bin/activate`
+
+Устанавливаем следующие пакет в консоле:
+```sh
+pip install flask
+pip install connexion
+pip install connexion[swagger-ui]
+pip install connexion[flask]
+pip install connexion[uvicorn]
+```
 
 
