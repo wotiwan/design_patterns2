@@ -35,3 +35,4 @@ class abstact_model(ABC):
 
         return self.unique_code == value.unique_code
 
+
