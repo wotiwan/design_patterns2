@@ -13,3 +13,11 @@ class response_formats:
     @staticmethod
     def json() -> str:
         return "json"
+
+    @staticmethod
+    def markdown() -> str:
+        return "markdown"
+
+    @staticmethod
+    def get_all_formats() -> list:
+        return ["scv", "excel", "json", "markdown"]

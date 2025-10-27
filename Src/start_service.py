@@ -55,7 +55,7 @@ class start_service:
             raise operation_exception("Не найден файл настроек!")
 
         try:
-            with open( self.__full_file_name, 'r') as file_instance:
+            with open( self.__full_file_name, 'r', encoding='utf-8') as file_instance:
                 settings = json.load(file_instance)
 
                 if "default_receipt" in settings.keys():
@@ -65,6 +65,7 @@ class start_service:
             return False
         except Exception as e:
             error_message = str(e)
+            print(error_message)
             return False
         
     # Сохранить элемент в репозитории
@@ -167,8 +168,5 @@ class start_service:
     def start(self):
         self.file_name = "settings.json"
         result = self.load()
-        if result == False:
+        if not result:
             raise operation_exception("Невозможно сформировать стартовый набор данных!")
-        
-
-

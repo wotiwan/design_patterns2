@@ -59,6 +59,10 @@ class settings_manager:
                     data = settings["company"]
                     return self.convert(data)
 
+                # Загружаем формат ответа
+                if "response_format" in settings.keys():
+                    self.__settings.response_format = settings["response_format"]
+
             return False
         except:
             return False
