@@ -15,19 +15,30 @@ class reference_converter(abstract_converter):
         if value is None:
             raise argument_exception("Передано пустое значение")
 
-        # Проверка через валидатор
+        # Проверка корректности аргумента
         validator.validate(value, object)
 
-        # Определяем поля объекта
-        fields = common.get_fields(value)
+        # Если тип — базовый, возвращаем его напрямую
+        if isinstance(value, (int, float, str, bool)):
+            return {"value": value}
 
-        # Если объект не имеет ни одного поля — ошибка
+        # Если список или кортеж
+        if isinstance(value, (list, tuple, set)):
+            return [self.convert(v) for v in value]
+
+        # Если словарь
+        if isinstance(value, dict):
+            return {k: self.convert(v) for k, v in value.items()}
+
+        # Если объект модели
+        fields = common.get_fields(value)
         if not fields:
             raise argument_exception("Объект не имеет атрибутов для конвертации")
 
-        # Собираем словарь
         result = {}
         for field in fields:
-            result[field] = getattr(value, field, None)
+            field_value = getattr(value, field, None)
+            # рекурсивная обработка поля
+            result[field] = self.convert(field_value) if not isinstance(field_value, (int, float, str, bool, type(None))) else field_value
 
         return result
