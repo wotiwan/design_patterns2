@@ -4,6 +4,7 @@
         "name":"Рога и копыта",
         "inn":123456789
     },
+    "first_start": true,
     "default_receipt":
     {
         "name":"ВАФЛИ ХРУСТЯЩИЕ В ВАФЕЛЬНИЦЕ",
