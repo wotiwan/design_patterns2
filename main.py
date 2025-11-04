@@ -108,7 +108,6 @@ def get_receipt_by_code(unique_code: str):
 @app.route("/api/report/osv", methods=["GET"])
 def get_osv_report():
     try:
-        print(start_service.data)
         # Параметры запроса
         start_date_str = request.args.get("start_date")
         end_date_str = request.args.get("end_date")

@@ -1,9 +1,10 @@
 from datetime import datetime
 from Src.Core.abstract_model import abstact_model
-from Src.Core.validator import validator
+from Src.Core.validator import validator, operation_exception
 from Src.Models.nomenclature_model import nomenclature_model
 from Src.Models.warehouse_model import warehouse_model
 from Src.Models.range_model import range_model
+from Src.Dtos.transaction_dto import transaction_dto
 
 
 class transaction_model(abstact_model):
@@ -39,3 +40,39 @@ class transaction_model(abstact_model):
         Фабричный метод для создания экземпляра транзакции
         """
         return transaction_model(date, nomenclature, warehouse, quantity, unit)
+
+    @staticmethod
+    def from_dto(dto: transaction_dto, cache: dict) -> "transaction_model":
+        """
+        Преобразование transaction_dto → transaction_model
+        """
+
+        validator.validate(dto, transaction_dto)
+        validator.validate(cache, dict)
+
+        # Проверяем кэш
+        if dto.id in cache:
+            return cache[dto.id]
+
+        if dto.date is None:
+            raise operation_exception(f"Дата транзакции пуста для ID {dto.id}")
+
+        nomenclature = cache.get(dto.nomenclature_id)
+        if nomenclature is None:
+            raise ValueError(f"Номенклатура с id {dto.nomenclature_id} не найдена")
+
+        warehouse = cache.get(dto.warehouse_id)
+        if warehouse is None:
+            raise ValueError(f"Склад с id {dto.warehouse_id} не найден")
+
+        unit = cache.get(dto.range_id)
+        if unit is None:
+            raise ValueError(f"Единица измерения с id {dto.range_id} не найдена")
+
+        # Создаём транзакцию
+        item = transaction_model.create(dto.date, nomenclature, warehouse, dto.quantity, unit)
+        item.unique_code = dto.id
+
+        # Добавляем в кэш
+        cache[dto.id] = item
+        return item
