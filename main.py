@@ -108,7 +108,6 @@ def get_receipt_by_code(unique_code: str):
 @app.route("/api/report/osv", methods=["GET"])
 def get_osv_report():
     try:
-        # Параметры запроса
         start_date_str = request.args.get("start_date")
         end_date_str = request.args.get("end_date")
         warehouse_name = request.args.get("warehouse")
@@ -119,50 +118,12 @@ def get_osv_report():
         start_date = datetime.fromisoformat(start_date_str)
         end_date = datetime.fromisoformat(end_date_str)
 
-        # Данные из start_service
-        warehouses = start_service.data.get(reposity.warehouse_key(), [])
-        transactions = start_service.data.get(reposity.transaction_key(), [])
-        nomenclatures = start_service.data.get(reposity.nomenclature_key(), [])
+        from Src.Logics.osv_service import osv_service
+        osv_service = osv_service(start_service)
+        
+        report = osv_service.generate(start_date, end_date, warehouse_name)
 
-        # Ищем склад
-        warehouse = next((w for w in warehouses if getattr(w, "name", None) == warehouse_name), None)
-        if not warehouse:
-            return jsonify({"error": f"Warehouse '{warehouse_name}' not found"}), 404
-
-        # Формируем словарь по номенклатуре
-        report = {}
-        for nom in nomenclatures:
-            report[nom.unique_code] = {
-                "nomenclature": nom.name,
-                "unit": getattr(nom.unit, "name", "") if hasattr(nom, "unit") else "",
-                "opening_balance": 0,
-                "incoming": 0,
-                "outgoing": 0,
-                "closing_balance": 0
-            }
-
-        # Проходим по всем транзакциям
-        for tr in transactions:
-            if getattr(tr, "warehouse", None) != warehouse:
-                continue
-            n_key = tr.nomenclature.unique_code
-            if tr.date < start_date:
-                report[n_key]["opening_balance"] += tr.quantity
-            elif start_date <= tr.date <= end_date:
-                if tr.quantity > 0:
-                    report[n_key]["incoming"] += tr.quantity
-                else:
-                    report[n_key]["outgoing"] += abs(tr.quantity)
-
-            # Пересчитываем конечный остаток
-            report[n_key]["closing_balance"] = (
-                report[n_key]["opening_balance"] +
-                report[n_key]["incoming"] -
-                report[n_key]["outgoing"]
-            )
-
-        # Возвращаем список
-        return jsonify({"report": list(report.values())})
+        return jsonify({"report": report})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
