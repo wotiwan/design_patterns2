@@ -40,6 +40,14 @@ class reposity:
     @staticmethod
     def receipt_key():
         return "receipt_model"
+
+    @staticmethod
+    def warehouse_key():
+        return "warehouse_model"
+
+    @staticmethod
+    def transaction_key():
+        return "transaction_model"
     
     """
     Получить список всех ключей
