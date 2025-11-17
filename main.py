@@ -74,7 +74,6 @@ def get_receipts():
         return jsonify({"error": str(e)}), 400
 
 
-# Получить конкретный рецепт по коду
 # Получить конкретный рецепт по уникальному коду
 @app.route("/api/receipts/code/<string:unique_code>", methods=["GET"])
 def get_receipt_by_code(unique_code: str):
@@ -204,10 +203,8 @@ def api_filter_osv():
         from Src.Logics.osv_service import osv_service
         osv = osv_service(start_service)
 
-        # Подменяем транзакции ТОЛЬКО внутри этого вызова
         osv.temp_transactions = filtered_transactions
 
-        # Читаем параметры дат из DTO (добавляем, если хочешь)
         start_date = datetime(2024, 1, 1)
         end_date = datetime(2030, 1, 1)
         warehouse_name = data_json.get("warehouse", "Главный склад")

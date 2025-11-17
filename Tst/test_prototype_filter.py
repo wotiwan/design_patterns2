@@ -9,7 +9,6 @@ from Src.Core.filter_type import filter_type
 
 class TestPrototypeFilter(unittest.TestCase):
     def setUp(self):
-        # Создаем реальные объекты моделей
         self.group1 = group_model()
         self.group1.name = "Группа 1"
         self.group1.unique_code = "G001"
@@ -50,7 +49,8 @@ class TestPrototypeFilter(unittest.TestCase):
         f = filter_dto()
         f.create({"entity": "nomenclature", "field": "range.base.name", "value": "грамм", "mode": "equals"})
         result = prototype_report.filter(self.proto.data, f)
-        self.assertEqual(len(result), 2)  # оба имеют base = грамм
+        self.assertEqual(len(result), 2)
+
 
 if __name__ == "__main__":
     unittest.main()
