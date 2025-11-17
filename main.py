@@ -1,3 +1,5 @@
+import json
+from datetime import datetime
 import connexion
 from Src.Logics.factory_entities import factory_entities
 from Src.settings_manager import settings_manager
@@ -5,6 +7,9 @@ from Src.Core.response_format import response_formats
 from flask import Flask, request, jsonify
 from Src.reposity import reposity
 from Src.start_service import start_service
+from Src.Models.transaction_model import transaction_model
+from Src.Models.warehouse_model import warehouse_model
+from Src.Logics.reference_converter import reference_converter
 
 app = Flask(__name__)
 
@@ -95,6 +100,51 @@ def get_receipt_by_code(unique_code: str):
         result = response_instance.build("json", [recipe])
 
         return jsonify({"receipt": result})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@app.route("/api/report/osv", methods=["GET"])
+def get_osv_report():
+    try:
+        start_date_str = request.args.get("start_date")
+        end_date_str = request.args.get("end_date")
+        warehouse_name = request.args.get("warehouse")
+
+        if not (start_date_str and end_date_str and warehouse_name):
+            return jsonify({"error": "Missing parameters: start_date, end_date, warehouse"}), 400
+
+        start_date = datetime.fromisoformat(start_date_str)
+        end_date = datetime.fromisoformat(end_date_str)
+
+        from Src.Logics.osv_service import osv_service
+        osv_service = osv_service(start_service)
+        
+        report = osv_service.generate(start_date, end_date, warehouse_name)
+
+        return jsonify({"report": report})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+# POST /api/data/save — Сохранить все данные в файл
+@app.route("/api/data/save", methods=["POST"])
+def save_all_data():
+    try:
+        file_name = getattr(start_service, "file_name", None) or "settings.json"
+        data = start_service.data
+        converter = reference_converter()
+
+        serialized = {}
+        for key, items in data.items():
+            serialized[key] = [converter.convert(i) for i in items]
+
+        with open(file_name, "w", encoding="utf-8") as f:
+            json.dump(serialized, f, ensure_ascii=False, indent=4)
+
+        return jsonify({"status": "SUCCESS", "file": file_name})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
