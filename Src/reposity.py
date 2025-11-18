@@ -1,4 +1,6 @@
 from Src.Core.common import common
+from Src.Dtos.filter_dto import filter_dto
+from Src.Dtos.filter_dto import filter_type
 
 """
 Репозиторий данных
@@ -64,7 +66,37 @@ class reposity:
 
         return result
 
-    
+    @staticmethod
+    def apply_filter(items: list, filter_data: filter_dto) -> list:
+        """
+        Универсальная фильтрация по 'name' и 'unique_code'
+        """
+        field = filter_data.field
+        value = filter_data.value.lower()
+        mode = filter_data.mode
+
+        if field not in ("name", "unique_code"):
+            raise ValueError(f"Фильтрация по полю '{field}' не поддерживается")
+
+        result = []
+
+        for item in items:
+            if not hasattr(item, field):
+                continue
+
+            field_value = str(getattr(item, field)).lower()
+
+            if mode == filter_type.EQUALS:
+                if field_value == value:
+                    result.append(item)
+
+            elif mode == filter_type.LIKE:
+                if value in field_value:
+                    result.append(item)
+
+        return result
+
+
     """
     Инициализация
     """
