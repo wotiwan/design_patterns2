@@ -31,6 +31,10 @@ class start_service:
         return cls.instance
 
     @property
+    def repo(self):
+        return self.__repo
+
+    @property
     def file_name(self) -> str:
         return self.__full_file_name
 

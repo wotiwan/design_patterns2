@@ -1,3 +1,5 @@
+import datetime
+
 from Src.Models.company_model import company_model
 from Src.Core.validator import validator
 
@@ -6,6 +8,7 @@ from Src.Core.validator import validator
 class settings_model:
     __company: company_model = None
     __response_format: str = "Json"
+    __block_period: datetime = None
 
     # Текущая организация
     @property
@@ -30,3 +33,11 @@ class settings_model:
             raise ValueError(f"Некорректный формат ответа: {value}. Допустимые значения: {allowed_formats}")
         self.__response_format = value
 
+    @property
+    def block_period(self) -> datetime:
+        return self.__block_period
+
+    @block_period.setter
+    def block_period(self, value: datetime):
+        validator.validate(value, datetime)
+        self.__block_period = value
