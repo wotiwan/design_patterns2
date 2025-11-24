@@ -42,6 +42,8 @@ def get_data_formatted(data_type: str, format: str):
     try:
         data = start_service.data[data_type]
 
+        
+
         # Создаём экземпляр класса ответа
         logic = factory.create(format)()
         result = logic.build(format, data)
