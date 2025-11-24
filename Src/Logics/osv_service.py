@@ -11,7 +11,8 @@ class osv_service:
     def __init__(self, start_service):
         self.start_service = start_service
 
-    def generate(self, start_date: datetime, end_date: datetime, warehouse_name: str) -> list:
+    def generate(self, start_date: datetime, end_date: datetime, warehouse_name: str,
+                 transactions_override=None) -> list:
         """
         Формирует отчет ОСВ по указанному складу и диапазону дат.
         """
@@ -20,7 +21,11 @@ class osv_service:
         validator.validate(warehouse_name, str)
 
         warehouses = self.start_service.data.get(reposity.warehouse_key(), [])
-        transactions = self.start_service.data.get(reposity.transaction_key(), [])
+
+        # используем override, если он передан
+        transactions = transactions_override if transactions_override is not None else self.start_service.data.get(
+            reposity.transaction_key(), [])
+
         nomenclatures = self.start_service.data.get(reposity.nomenclature_key(), [])
 
         warehouse = next((w for w in warehouses if getattr(w, "name", None) == warehouse_name), None)
@@ -52,9 +57,10 @@ class osv_service:
                     report[n_key]["outgoing"] += abs(tr.quantity)
 
             report[n_key]["closing_balance"] = (
-                report[n_key]["opening_balance"] +
-                report[n_key]["incoming"] -
-                report[n_key]["outgoing"]
+                    report[n_key]["opening_balance"] +
+                    report[n_key]["incoming"] -
+                    report[n_key]["outgoing"]
             )
 
         return list(report.values())
+

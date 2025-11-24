@@ -10,6 +10,8 @@ from Src.start_service import start_service
 from Src.Models.transaction_model import transaction_model
 from Src.Models.warehouse_model import warehouse_model
 from Src.Logics.reference_converter import reference_converter
+from Src.Dtos.filter_dto import filter_dto
+from Src.Logics.prototype_report import prototype_report
 
 app = Flask(__name__)
 
@@ -72,7 +74,6 @@ def get_receipts():
         return jsonify({"error": str(e)}), 400
 
 
-# Получить конкретный рецепт по коду
 # Получить конкретный рецепт по уникальному коду
 @app.route("/api/receipts/code/<string:unique_code>", methods=["GET"])
 def get_receipt_by_code(unique_code: str):
@@ -145,6 +146,73 @@ def save_all_data():
             json.dump(serialized, f, ensure_ascii=False, indent=4)
 
         return jsonify({"status": "SUCCESS", "file": file_name})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@app.route("/api/filter/<string:entity>", methods=["POST"])
+def api_filter_entity(entity: str):
+    try:
+        # Проверяем, что сущность существует в репозитории
+        if entity not in reposity.keys():
+            return jsonify({"error": f"Unknown entity '{entity}'"}), 400
+
+        # Получаем входной DTO
+        data_json = request.get_json()
+        if not data_json:
+            return jsonify({"error": "Empty request body"}), 400
+
+        dto = filter_dto().create(data_json)
+
+        # Получаем список элементов
+        source_items = start_service.data.get(entity, [])
+
+        # Оборачиваем в прототип
+        proto = prototype_report(source_items)
+
+        # Применяем фильтр
+        result = prototype_report.filter(source_items, dto)
+
+        # Сериализация результата — JSON
+        converter = reference_converter()
+        converted = [converter.convert(i) for i in result]
+
+        return jsonify({"result": converted})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@app.route("/api/filter/osv", methods=["POST"])
+def api_filter_osv():
+    try:
+        data_json = request.get_json()
+        if not data_json:
+            return jsonify({"error": "Empty request body"}), 400
+
+        # Создаём DTO фильтра
+        dto = filter_dto().create(data_json)
+
+        # Фильтрация транзакций через прототип
+        all_transactions = start_service.data.get(reposity.transaction_key(), [])
+        proto = prototype_report(all_transactions)
+        filtered_transactions = prototype_report.filter(all_transactions, dto)
+
+        # Создаём временный сервис ОСВ
+        from Src.Logics.osv_service import osv_service
+        osv = osv_service(start_service)
+
+        osv.temp_transactions = filtered_transactions
+
+        start_date = datetime(2024, 1, 1)
+        end_date = datetime(2030, 1, 1)
+        warehouse_name = data_json.get("warehouse", "Главный склад")
+
+        report = osv.generate(start_date, end_date, warehouse_name,
+                              transactions_override=filtered_transactions)
+
+        return jsonify({"report": report})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
