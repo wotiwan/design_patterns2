@@ -12,6 +12,10 @@ from Src.Models.warehouse_model import warehouse_model
 from Src.Logics.reference_converter import reference_converter
 from Src.Dtos.filter_dto import filter_dto
 from Src.Logics.prototype_report import prototype_report
+from Src.reference_service import reference_service
+from Src.Models.nomenclature_model import nomenclature_model
+from Src.Models.range_model import range_model
+from Src.Models.group_model import group_model
 
 app = Flask(__name__)
 
@@ -216,6 +220,135 @@ def api_filter_osv():
                               transactions_override=filtered_transactions)
 
         return jsonify({"report": report})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+reference_map = {
+    "nomenclature": nomenclature_model,
+    "unit": range_model,
+    "group": group_model,
+    "warehouse": warehouse_model
+}
+
+ref_service = start_service.reference_service
+
+
+def make_prototype(model_class, json_data):
+    """Создаёт прототип из JSON"""
+    proto = model_class()
+    if "name" in json_data:
+        proto.name = json_data["name"]
+    return proto
+
+
+# --------- GET: получить один элемент ---------
+@app.route("/api/<string:ref_type>", methods=["GET"])
+def get_reference(ref_type):
+    try:
+        if ref_type not in reference_map:
+            return jsonify({"error": "Invalid reference type"}), 400
+
+        model = reference_map[ref_type]
+
+        name = request.args.get("name")
+        if not name:
+            return jsonify({"error": "Missing ?name="}), 400
+
+        proto = model()
+        proto.name = name
+
+        result = ref_service.find(proto)
+        if not result:
+            return jsonify({"error": "Not found"}), 404
+
+        from Src.Logics.reference_converter import reference_converter
+        c = reference_converter()
+        return jsonify({"result": c.convert(result[0])})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+# --------- PUT: добавление ---------
+@app.route("/api/<string:ref_type>", methods=["PUT"])
+def add_reference(ref_type):
+    try:
+        if ref_type not in reference_map:
+            return jsonify({"error": "Invalid reference type"}), 400
+
+        json_data = request.get_json()
+        if not json_data:
+            return jsonify({"error": "Empty body"}), 400
+
+        model = reference_map[ref_type]
+        item = model()
+        item.name = json_data["name"]
+
+        ref_service.add(item)
+
+        from Src.Logics.reference_converter import reference_converter
+        c = reference_converter()
+
+        return jsonify({"result": c.convert(item)})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+# --------- PATCH: изменение ---------
+@app.route("/api/<string:ref_type>", methods=["PATCH"])
+def update_reference(ref_type):
+    try:
+        if ref_type not in reference_map:
+            return jsonify({"error": "Invalid reference type"}), 400
+
+        json_data = request.get_json()
+        if not json_data:
+            return jsonify({"error": "Empty body"}), 400
+
+        model = reference_map[ref_type]
+
+        # что ищем
+        if "old_name" not in json_data:
+            return jsonify({"error": "Missing old_name"}), 400
+
+        proto = model()
+        proto.name = json_data["old_name"]
+
+        # на что меняем
+        update_fields = {}
+        if "name" in json_data:
+            update_fields["name"] = json_data["name"]
+
+        updated_count = ref_service.update(proto, update_fields)
+
+        return jsonify({"updated": updated_count})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+# --------- DELETE: удаление ---------
+@app.route("/api/<string:ref_type>", methods=["DELETE"])
+def delete_reference(ref_type):
+    try:
+        if ref_type not in reference_map:
+            return jsonify({"error": "Invalid reference type"}), 400
+
+        name = request.args.get("name")
+        if not name:
+            return jsonify({"error": "Missing ?name="}), 400
+
+        model = reference_map[ref_type]
+
+        proto = model()
+        proto.name = name
+
+        deleted = ref_service.delete(proto)
+
+        return jsonify({"deleted": deleted})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
