@@ -3,6 +3,7 @@ from Src.reposity import reposity
 from Src.Logics.prototype_report import prototype_report
 from datetime import datetime
 from Src.Logics.osv_service import osv_service
+from Src.Core.validator import operation_exception
 
 
 class reference_observer:
@@ -17,19 +18,19 @@ class reference_observer:
             recipes = self.start_service.data.get(reposity.receipt_key(), [])
             for r in recipes:
                 if item in r.items:
-                    raise Exception(f"Нельзя удалить — номенклатура '{item.name}' используется в рецепте '{r.name}'")
+                    raise operation_exception(f"Нельзя удалить — номенклатура '{item.name}' используется в рецепте '{r.name}'")
 
         # 2. Она могла использоваться в транзакциях
         transactions = self.start_service.data.get(reposity.transaction_key(), [])
         for t in transactions:
             if t.nomenclature == item:
-                raise Exception(f"Нельзя удалить — '{item.name}' используется в движениях (transaction #{t.id})")
+                raise operation_exception(f"Нельзя удалить — '{item.name}' используется в движениях (transaction #{t.id})")
 
         # 3. Если склад — могут быть транзакции
         if repo_key == reposity.warehouse_key():
             for t in transactions:
                 if t.warehouse == item:
-                    raise Exception(f"Нельзя удалить — склад '{item.name}' используется в транзакции {t.id}")
+                    raise operation_exception(f"Нельзя удалить — склад '{item.name}' используется в транзакции {t.id}")
 
     def on_updated(self, old_item, new_item):
         repo_key = new_item.__class__.repo_key()
