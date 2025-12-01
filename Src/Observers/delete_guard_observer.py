@@ -1,6 +1,6 @@
 from Src.Core.observer import Observer
 from Src.reposity import reposity
-
+from Src.Core.validator import operation_exception
 
 class delete_guard_observer(Observer):
 
@@ -18,14 +18,14 @@ class delete_guard_observer(Observer):
         if obj_type.__name__ == "nomenclature_model":
             for recipe in self.start_service.data.get("recipe_model", []):
                 if recipe.nomenclature == obj:
-                    raise Exception(
+                    raise operation_exception(
                         f"Нельзя удалить номенклатуру '{obj.name}': она используется в рецепте {recipe.unique_code}"
                     )
 
             # Проверяем обороты и транзакции
             for tr in self.start_service.data.get("transaction_model", []):
                 if tr.nomenclature == obj:
-                    raise Exception(
+                    raise operation_exception(
                         f"Нельзя удалить номенклатуру '{obj.name}': она используется в транзакциях."
                     )
 
@@ -33,6 +33,6 @@ class delete_guard_observer(Observer):
         if obj_type.__name__ == "warehouse_model":
             for tr in self.start_service.data.get("transaction_model", []):
                 if tr.warehouse == obj:
-                    raise Exception(
+                    raise operation_exception(
                         f"Нельзя удалить склад '{obj.name}': он используется в транзакциях."
                     )

@@ -15,5 +15,3 @@ class balance_recalculate_observer(Observer):
 
         osv = osv_service(self.start_service)
         osv.recalculate_until(lock_date)
-
-        print("[observer] Остатки обновлены до даты блокировки:", lock_date)
