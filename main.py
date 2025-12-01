@@ -42,6 +42,8 @@ def get_data_formatted(data_type: str, format: str):
     try:
         data = start_service.data[data_type]
 
+
+
         # Создаём экземпляр класса ответа
         logic = factory.create(format)()
         result = logic.build(format, data)
@@ -220,6 +222,72 @@ def api_filter_osv():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
+
+@app.route("/api/settings/block_date", methods=["POST"])
+def set_block_date():
+    try:
+        data = request.get_json()
+        if not data or "block_date" not in data:
+            return jsonify({"error": "Missing 'block_date' in request body"}), 400
+
+        block_date_str = data["block_date"]
+
+        try:
+            block_date = datetime.fromisoformat(block_date_str)
+        except ValueError:
+            return jsonify({"error": "Invalid date format. Use YYYY-MM-DD"}), 400
+
+        # Сохраняем дату блокировки в settings_model через start_service
+        if not hasattr(start_service, "settings") or start_service.settings is None:
+            return jsonify({"error": "Settings not initialized in start_service"}), 500
+
+        start_service.settings.block_date = block_date
+
+        return jsonify({"status": "SUCCESS", "block_date": block_date.isoformat()})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/settings/block_date", methods=["GET"])
+def get_block_date():
+    try:
+        if not hasattr(start_service, "settings") or start_service.settings is None:
+            return jsonify({"error": "Settings not initialized in start_service"}), 500
+
+        block_date = getattr(start_service.settings, "block_date", None)
+
+        if block_date is None:
+            return jsonify({"block_date": None})
+        else:
+            return jsonify({"block_date": block_date.isoformat()})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/balance", methods=["GET"])
+def get_balance_on_date():
+    try:
+        date_str = request.args.get("date")
+        warehouse_name = request.args.get("warehouse")
+
+        if not date_str or not warehouse_name:
+            return jsonify({"error": "Missing parameters: date, warehouse"}), 400
+
+        try:
+            target_date = datetime.fromisoformat(date_str)
+        except ValueError:
+            return jsonify({"error": "Invalid date format. Use YYYY-MM-DD"}), 400
+
+        from Src.Logics.osv_service import osv_service
+        osv = osv_service(start_service)
+
+        # Для временного теста используем start_date = 1900-01-01
+        balances = osv.generate(datetime(1900, 1, 1), target_date, warehouse_name)
+
+        return jsonify({"date": target_date.isoformat(), "warehouse": warehouse_name, "balances": balances})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8080)
