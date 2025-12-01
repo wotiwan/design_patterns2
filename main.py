@@ -113,18 +113,21 @@ def get_osv_report():
         end_date_str = request.args.get("end_date")
         warehouse_name = request.args.get("warehouse")
 
-        if not (start_date_str and end_date_str and warehouse_name):
+        if not start_date_str or not end_date_str or not warehouse_name:
             return jsonify({"error": "Missing parameters: start_date, end_date, warehouse"}), 400
 
         start_date = datetime.fromisoformat(start_date_str)
         end_date = datetime.fromisoformat(end_date_str)
 
         from Src.Logics.osv_service import osv_service
-        osv_service = osv_service(start_service)
-        
-        report = osv_service.generate(start_date, end_date, warehouse_name)
+        osv = osv_service(start_service)
 
-        return jsonify({"report": report})
+        report_objects = osv.generate(start_date, end_date, warehouse_name)
+
+        converter = reference_converter()
+        report_serialized = [converter.convert(item) for item in report_objects]
+
+        return jsonify({"report": report_serialized})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
