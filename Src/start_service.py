@@ -17,6 +17,11 @@ from Src.Dtos.warehouse_dto import warehouse_dto
 from Src.reference_service import reference_service
 from Src.reference_observer import reference_observer
 
+from Src.Observers.delete_guard_observer import delete_guard_observer
+from Src.Observers.balance_recalculate_observer import balance_recalculate_observer
+from Src.Observers.settings_persistence_observer import settings_persistence_observer
+from Src.Observers.update_propagation_observer import update_propagation_observer
+
 
 class start_service:
     __repo: reposity = reposity()
@@ -26,7 +31,13 @@ class start_service:
 
     def __init__(self):
         self.observer = reference_observer(self)
-        self.reference_service = reference_service().subscribe(self.observer)
+        self.reference_service = reference_service()
+
+        self.reference_service.register(delete_guard_observer(start_service))
+        self.reference_service.register(balance_recalculate_observer(start_service))
+        self.reference_service.register(update_propagation_observer(start_service))
+        self.reference_service.register(settings_persistence_observer("appsettings.json"))
+
         self.__repo.initalize()
 
     def __new__(cls):

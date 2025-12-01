@@ -1,4 +1,14 @@
-class observer:
-    def on_added(self, item): pass
-    def on_updated(self, old_item, new_item): pass
-    def on_deleted(self, item): pass
+from abc import ABCMeta, abstractmethod
+
+
+class Observer(metaclass=ABCMeta):
+    """
+    Абстрактный наблюдатель
+    """
+
+    @abstractmethod
+    def update(self, message: dict) -> None:
+        """
+        Получение нового сообщения
+        """
+        pass
